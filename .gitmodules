@@ -1,3 +1,3 @@
-[submodule "Yu2024_replication"]
-	path = Yu2024_replication
-	url = git@github.com:yukam997/Yu2024_replication.git
+[submodule "repetitive_coordination_game"]
+	path = repetitive_coordination_game
+	url = https://github.com:yukam997/repetitive_coordination_game.git
