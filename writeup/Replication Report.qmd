@@ -1,0 +1,205 @@
+---
+title: "Replication of Study X by Sample & Sample (20xx, Psychological Science)"
+author: "Replication Author[s] (contact information)"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+format:
+  html:
+    toc: true
+    toc_depth: 3
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+<!-- Replication reports should all use this template to standardize reporting across projects.  These reports will be public supplementary materials that accompany the summary report(s) of the aggregate results. -->
+
+## Introduction
+
+**Justification:** By replicating this project, I want to gain
+experience running experiments with dyadic interaction. I am interested
+in understanding how social norms form, and this kind of repeated games
+are a common way to investigate this problem, hence will continue to be
+useful in my research program.
+
+**Stimuli and Procedures:** Participants will play a 2-player iterated
+cooperative decision-making task which I will implement in Empirica.
+Participants will be informed that they must select a parking spot in a
+virtual parking lot over the course of several days. Different spots
+will cost different amounts of a virtual currency (Monetary Units; price
+remain fixed over days). Participants will be incentivized to minimize
+cost paid as low cost paid corresponds to higher pay for participating
+in the experiment. There are two zones in the lot: an orange zone and a
+purple zone, and two parking spots per zone, and participants will
+selecte a spot to park before seeing their partner's selection.
+Participants will be informed that selecting the same color zone as
+their partner would give them a “group discount”, but selecting the
+exact same parking spot will incur a penalty price. After making their
+decisions, participants were shown the actions that their partner took
+and the price each participant paid.
+
+Here are the links to the [repo](https://github.com/psych251/Yu2024) and
+[paper](https://github.com/psych251/Yu2024/blob/main/original_paper/YuAndThompson.pdf).
+
+## Project Progress
+
+**Pilot A:** Results and preliminary graphs corresponding to the
+original paper can be found at this [github
+repo](https://github.com/yukam997/repetitive_coordination_game.git)
+under the pilotA_results folder:
+
+**Outcome Measure:** The success of the replication will be measured
+based on how well the distribuion of strategies that the partners adopt
+match the distribution from the original paper. More specifically, we
+will use the same statistical analyses to compare the results obtained
+in condition 3 with the results from condition 1 and 2 of the experiment
+to see if the qualitative differences that they report replicate. The
+main result we want to replicate is that "participants developed an
+alternating norm more frequently than in the control (Condition 1)".
+Additionally, we are also interested in the result that "participants
+were less likely to converge on stable selection on orange compared to
+the condition 1 (β=−0.75, CrI = \[−0.92,−0.59\]) and 2 (β=−0.29, CrI =
+\[−0.46,−0.13\]) \* they failed to form any norm more frequently
+compared to the control (β= 0.18, CrI = \[0.04, 0.31\])".
+
+We will do the same statistical tests comparing results from other
+conditions in the original paper with our replication results of
+condition 3, to see whether these observations still hold.
+
+We will also confirm whether "participants paid less over the course of
+the game" still holds, which is a key indicator of whether participants
+converged to systematic norms over time.
+
+**Steps for Reproduction:**
+
+-   Collecting data large-scale: I still need to set up the experiment
+    on prolific to recruit participants, which I have no experience
+    doing.
+
+-   Analysis: I don't have a concrete idea of how to do the statistical
+    analyses to measure the success of the replication outlined above.
+
+-   Stimuli Refinement: The exact phrasing of the prompt and stimuli is
+    different from the original paper. I will follow up and confirm with
+    the original authors.
+
+-   classifying strategies: I have written code to process csv's
+    generated from participant's interaction history and classify
+    strategies described in the paper. However, this may require minor
+    alterations to match exactly the classification algorithm used by
+    the original paper.
+
+## Methods
+
+### Power Analysis
+
+Running the power analysis below shows that we should use 60 pairs,
+hence recruit 120 participants to get a power of 0.8.
+
+```{r}
+library(pwr)
+p1 <- 0.085 # probability of alternating on purple in condition 3
+p2 <- 0.005  # probability of alternating on purple in condition 1
+
+h <- ES.h(p1, p2)
+result <- pwr.2p.test(h = h, n = 60, sig.level = 0.05, alternative = "greater")
+result$power
+```
+
+### Planned Sample
+
+We plan to run 120 participants.
+
+### Materials
+
+All materials - can quote directly from original article - just put the
+text in quotations and note that this was followed precisely. Or, quote
+directly and just point out exceptions to what was described in the
+original article.
+
+### Procedure
+
+Can quote directly from original article - just put the text in
+quotations and note that this was followed precisely. Or, quote directly
+and just point out exceptions to what was described in the original
+article.
+
+### Analysis Plan
+
+Can also quote directly, though it is less often spelled out effectively
+for an analysis strategy section. The key is to report an analysis
+strategy that is as close to the original - data cleaning rules, data
+exclusion rules, covariates, etc. - as possible.
+
+**Clarify key analysis of interest here** You can also pre-specify
+additional analyses you plan to do.
+
+### Differences from Original Study
+
+Explicitly describe known differences in sample, setting, procedure, and
+analysis plan from original study. The goal, of course, is to minimize
+those differences, but differences will inevitably occur. Also, note
+whether such differences are anticipated to make a difference based on
+claims in the original article or subsequent published research on the
+conditions for obtaining the effect.
+
+### Methods Addendum (Post Data Collection)
+
+You can comment this section out prior to final report with data
+collection.
+
+#### Actual Sample
+
+Sample size, demographics, data exclusions based on rules spelled out in
+analysis plan
+
+#### Differences from pre-data collection methods plan
+
+Any differences from what was described as the original plan, or “none”.
+
+## Results
+
+### Data preparation
+
+Data preparation following the analysis plan.
+
+```{r include=F}
+### Data Preparation
+
+#### Load Relevant Libraries and Functions
+
+#### Import data
+
+#### Data exclusion / filtering
+
+#### Prepare data for analysis - create columns etc.
+```
+
+### Confirmatory analysis
+
+The analyses as specified in the analysis plan.
+
+*Side-by-side graph with original graph is ideal here*
+
+### Exploratory analyses
+
+Any follow-up analyses desired (not required).
+
+## Discussion
+
+### Summary of Replication Attempt
+
+Open the discussion section with a paragraph summarizing the primary
+result from the confirmatory analysis and the assessment of whether it
+replicated, partially replicated, or failed to replicate the original
+result.
+
+### Commentary
+
+Add open-ended commentary (if any) reflecting (a) insights from
+follow-up exploratory analysis, (b) assessment of the meaning of the
+replication (or not) - e.g., for a failure to replicate, are the
+differences between original and present study ones that definitely,
+plausibly, or are unlikely to have been moderators of the result, and
+(c) discussion of any objections or challenges raised by the current and
+original authors about the replication attempt. None of these need to be
+long.
