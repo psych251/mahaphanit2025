@@ -54,12 +54,13 @@ will use the same statistical analyses to compare the results obtained
 in condition 3 with the results from condition 1 and 2 of the experiment
 to see if the qualitative differences that they report replicate. The
 main result we want to replicate is that "participants developed an
-alternating norm more frequently than in the control (Condition 1)".
-Additionally, we are also interested in the result that "participants
-were less likely to converge on stable selection on orange compared to
-the condition 1 (β=−0.75, CrI = \[−0.92,−0.59\]) and 2 (β=−0.29, CrI =
-\[−0.46,−0.13\]) \* they failed to form any norm more frequently
-compared to the control (β= 0.18, CrI = \[0.04, 0.31\])".
+alternating norm more frequently than in the control (β = 0.10,CrI =
+\[0.01,0.20\])". Additionally, we are also interested in the result that
+"participants were less likely to converge on stable selection on orange
+compared to \[condition 1\] (β=−0.75, CrI = \[−0.92,−0.59\]) and 2
+(β=−0.29, CrI = \[−0.46,−0.13\])" and that "they failed to form any norm
+more frequently compared to the control (β= 0.18, CrI = \[0.04,
+0.31\])".
 
 We will do the same statistical tests comparing results from other
 conditions in the original paper with our replication results of
@@ -69,78 +70,93 @@ We will also confirm whether "participants paid less over the course of
 the game" still holds, which is a key indicator of whether participants
 converged to systematic norms over time.
 
-**Steps for Reproduction:**
-
--   Collecting data large-scale: I still need to set up the experiment
-    on prolific to recruit participants, which I have no experience
-    doing.
-
--   Analysis: I don't have a concrete idea of how to do the statistical
-    analyses to measure the success of the replication outlined above.
-
--   Stimuli Refinement: The exact phrasing of the prompt and stimuli is
-    different from the original paper. I will follow up and confirm with
-    the original authors.
-
--   classifying strategies: I have written code to process csv's
-    generated from participant's interaction history and classify
-    strategies described in the paper. However, this may require minor
-    alterations to match exactly the classification algorithm used by
-    the original paper.
-
 ## Methods
 
 ### Power Analysis
 
-Running the power analysis below shows that we should use 60 pairs,
-hence recruit 120 participants to get a power of 0.8.
+Running the power analysis below shows that we should use 52 pairs,
+hence recruit 104 participants to get a power of 0.8.
 
 ```{r}
 library(pwr)
-p1 <- 0.085 # probability of alternating on purple in condition 3
-p2 <- 0.005  # probability of alternating on purple in condition 1
+p1 <- 9.5/84 # probability of alternating on purple in condition 3
+p2 <- 1/102 # probability of alternating on purple in condition 1
 
 h <- ES.h(p1, p2)
-result <- pwr.2p.test(h = h, n = 60, sig.level = 0.05, alternative = "greater")
-result$power
+result <- pwr.2p.test(h = h, sig.level = 0.05, alternative = "greater",power=0.8)
+result$n
 ```
 
 ### Planned Sample
 
-We plan to run 120 participants.
+We plan to run 104 participants.
 
 ### Materials
 
-All materials - can quote directly from original article - just put the
-text in quotations and note that this was followed precisely. Or, quote
-directly and just point out exceptions to what was described in the
-original article.
+The experiment will be run online. Participants will be recruited
+through Prolific, and sent to a link hosted by google cloud where they
+will complete a task with another participant (which is implemented
+using Empirica). The code used for the online experiment is available at
+this [link](https://github.com/yukam997/repetitive_coordination_game).
 
 ### Procedure
 
-Can quote directly from original article - just put the text in
-quotations and note that this was followed precisely. Or, quote directly
-and just point out exceptions to what was described in the original
-article.
+This is the procedure as reported in the original paper: \>
+\[Participants\] were shown the parking lot of their assigned treatment
+and were asked to write a strategic plan describing how they would
+ideally play the game. After writing, participants progressed to a
+treatment-specific waiting room and were paired with the first available
+partner. They played 12 trials of the game; after each trial,
+participants were shown their partner’s move and cost paid on the
+previous trial, and needed to indicate the cost they themselves paid as
+an attention check. The task took a median time of 12 minutes.
+Participants were paid a base rate of \$12.50/hr; they were incentivized
+to minimize their overall cost in the game through a performance-based
+compensation bonus. Participants were informed they would play multiple
+trials but not told precisely how many, to induce uncertainty in the
+time horizon.
+
+We follow the same procedure except we pay them a base rate of \$8/hr.
 
 ### Analysis Plan
 
-Can also quote directly, though it is less often spelled out effectively
-for an analysis strategy section. The key is to report an analysis
-strategy that is as close to the original - data cleaning rules, data
-exclusion rules, covariates, etc. - as possible.
+We follow the same procedure as in the paper quoted below: \> We
+excluded from analysis participants who failed to select a parking spot
+in the allotted time and did not finish the game, as well as
+participants who wrote fewer than 10 characters in a pre-game writing
+task.
 
-**Clarify key analysis of interest here** You can also pre-specify
-additional analyses you plan to do.
+**Clarify key analysis of interest here** The key analysis of interest
+is whether the proportion of participants who used the strategy of
+alternating between the two purple parking spots was greater in
+condition 3 than in the control (condition 1). We will compare results
+from condition 1 in the original paper against the condition 3 results
+we obtain and use a bayesian regression model
+`brm(isAlternatingPurple ~ condition)` to see if the credible interval
+is above 0. We will also use a different metric, the `prop.test`
+function to see test whether the proportions of the strategy of
+alternating purple is different in condition 3 and 1.
 
 ### Differences from Original Study
 
-Explicitly describe known differences in sample, setting, procedure, and
-analysis plan from original study. The goal, of course, is to minimize
-those differences, but differences will inevitably occur. Also, note
-whether such differences are anticipated to make a difference based on
-claims in the original article or subsequent published research on the
-conditions for obtaining the effect.
+Here are the main differences from the original study:
+
+-   We are only replicating condition 3 of the experiment, hence the
+    results for condition 3 we replicate will be compared with results
+    from condition 1 of the authors' paper instead of results from our
+    own experiment.
+
+-   The classification algorithm for the different strategies is not
+    publicly available so I created my own algorithm to classify the
+    strategies. However, there should be minimal differences, as there
+    is little ambiguity in which traces of the interaction should be
+    classified into different strategies.
+
+-   Participants were paid \$8/hour instead of \$12.5/hour as in the
+    original study
+
+However, we do not expect these differences to be significant in
+influencing the outcome of this study.
 
 ### Methods Addendum (Post Data Collection)
 
@@ -164,14 +180,161 @@ Data preparation following the analysis plan.
 
 ```{r include=F}
 ### Data Preparation
-
+# load dhara's data
 #### Load Relevant Libraries and Functions
-
+library(dplyr)
 #### Import data
 
+game_df <- read.csv("../data/pilotBresults/game-anon.csv")
+playerRound_df <- read.csv("../data/pilotBresults/playerRound-anon.csv")
+playerStage_df <- read.csv("../data/pilotBresults/playerStage-anon.csv")
 #### Data exclusion / filtering
+# identify games which finished successfully
+#know what games to look at
+successful_games_id <- game_df$id[game_df$endedReason == "end of game"] 
+n_rounds = 13
+playerRound_df <- playerRound_df %>%
+    arrange(gameID, playerID, decisionLastChangedAt) %>%  # Sort by multiple columns
+    select(decision, bonus, gameID, playerID)  
+playerRound_df <- playerRound_df[playerRound_df$gameID %in% successful_games_id, ]
+playerRound_df <- playerRound_df %>% mutate(row_index = row_number())
+# change cost to 30 - bonus
+playerRound_df <- playerRound_df %>% mutate(cost = 30 - bonus)
+# create round column which is %13 of row_index
+
+# only look at rows where gameID is in successful_games_id
+playerStage_df <- playerStage_df[playerStage_df$gameID %in% successful_games_id, ]
+playerStage_df <- playerStage_df %>%
+    arrange(gameID, playerID, stageIDLastChangedAt) %>%  # Sort by multiple columns
+    select(myCost, gameID, playerID,stageIDLastChangedAt)  
+# only take the even indexed rows (1 indexed)
+playerStage_df <- playerStage_df[c(FALSE, TRUE), ]
+# for each gameID, count the percentage that myCost is correct
+# for each game ID, order rows by playerID and stageIDLastChangedAt and the entries in myCost column from stage data
+# loop trhough each id in successful_games_id
+attention_gameIDs <- c()
+# filter out games where participant fails attention check
+for (gid in successful_games_id) {
+    stage_myCost<-playerStage_df$myCost[playerStage_df$gameID == gid]
+    round_costs <- playerRound_df$cost[playerRound_df$gameID == gid]
+    # compare the two vectors
+    if (sum(stage_myCost == round_costs)/length(round_costs) > 0.8) {
+        attention_gameIDs <- c(attention_gameIDs, gid)
+    }
+}
+### run python function on the cleaned csv to classify strategy.
+classify_strategy <- function(pair_choice_seq) {
+    strat_table <- c("alt_orange"=0, "alt_purple"=0, "stable_orange"=0, "stable_purple"=0, "other"=0)
+    # create choice_relationship vector
+    choice_relationship <- rep("other", n_rounds-1)
+    for (i in 1:(n_rounds-1)) {
+        p1_choice <- pair_choice_seq[i]
+        p2_choice <- pair_choice_seq[i+n_rounds]
+        next_p1_choice <- pair_choice_seq[i+1]
+        next_p2_choice <- pair_choice_seq[i+n_rounds+1]
+        if (all(c(p1_choice, p2_choice,next_p1_choice,next_p2_choice) %in% c("C", "D"))) {
+            if (p1_choice == next_p1_choice & p2_choice == next_p2_choice){choice_relationship[i] <- "stable_purple"}
+            if (p1_choice != next_p1_choice & p2_choice != next_p2_choice){choice_relationship[i] <- "alt_purple"}
+        } 
+        if (all(c(p1_choice, p2_choice,next_p1_choice,next_p2_choice) %in% c("A", "B"))) {
+            if (p1_choice == next_p1_choice & p2_choice == next_p2_choice){choice_relationship[i] <- "stable_orange"}
+            if (p1_choice != next_p1_choice & p2_choice != next_p2_choice){choice_relationship[i] <- "alt_orange"}
+        }
+    }
+    # find longest consecutive common strategy in choice_relationship
+    count <- 1
+    strat <- choice_relationship[1]
+    for (i in 2:length(choice_relationship)) {
+        if (choice_relationship[i] == strat) {
+            count <- count + 1
+        } else {
+            if (count > strat_table[[strat]]) {
+                strat_table[[strat]] <- count
+            }
+            strat <- choice_relationship[i]
+            count <- 1
+        }
+    }
+    if (count > strat_table[[strat]]) {
+        strat_table[strat] <- count
+    }
+    max_value <- max(strat_table)
+    if (max_value < 5) {
+        return("other")
+    }
+    return(names(strat_table)[which.max(strat_table)])
+}
+
+count_strat <- list("alt_orange"=0, "alt_purple"=0, "stable_orange"=0, "stable_purple"=0, "other"=0)
+for (game in attention_gameIDs) {
+    df_game <- playerRound_df[playerRound_df$gameID == game, ]
+    pair_choice_seq <- df_game$decision
+    strat <- classify_strategy(pair_choice_seq)
+    if (is.null(strat)) {
+        next
+    }
+    for (s in strat) {
+        count_strat[[s]] <- count_strat[[s]] + 1/length(strat) #1/len to account for ties
+    }
+}
+
+# create table where each with columns: gameID, altOrange, altPurple, stableOrange, stablePurple, other
+strategy_count_df <- data.frame(
+    gameID = character(),
+    alt_orange = numeric(),
+    alt_purple = numeric(),
+    stable_orange = numeric(),
+    stable_purple = numeric(),
+    other = numeric(),
+    stringsAsFactors = FALSE
+)
+
 
 #### Prepare data for analysis - create columns etc.
+for (game in attention_gameIDs) {
+    df_game <- playerRound_df[playerRound_df$gameID == game, ]
+    pair_choice_seq <- df_game$decision
+    strat <- classify_strategy(pair_choice_seq)
+    alt_orange <- ifelse("alt_orange" %in% strat, 1/length(strat), 0)
+    alt_purple <- ifelse("alt_purple" %in% strat, 1/length(strat), 0)
+    stable_orange <- ifelse("stable_orange" %in% strat, 1/length(strat), 0)
+    stable_purple <- ifelse("stable_purple" %in% strat, 1/length(strat), 0)
+    other <- ifelse("other" %in% strat, 1/length(strat), 0)
+    strategy_count_df <- rbind(strategy_count_df, data.frame(
+        gameID = game,
+        alt_orange = alt_orange,
+        alt_purple = alt_purple,
+        stable_orange = stable_orange,
+        stable_purple = stable_purple,
+        other = other
+    ))
+}
+strategy_count_df$condition <- 3
+strategy_count_df <-strategy_count_df%>%select(gameID,alt_purple,condition)
+# save strategy_count_df as strategy_count.csv
+write.csv(strategy_count_df, "./strategy_count.csv", row.names = FALSE)
+
+# take dhara_data.csv, filter out rows where treatment_abbreviated_name = condition 1, and take just the game ID and last_4_strategy_stable_spot4_spot3 colun
+#COMMENTING OUT READING IN DHARAs DATA  
+#dhara_df <- read.csv("../data_analysis/dhara_data.csv")
+#condition1_df <- dhara_df[dhara_df$treatment_abbreviated_name == "condition1", #c("gameID", "last_4_strategy_alternating_spot4_spot3")]
+# rename column last_4_strategy_stable_spot4_spot3 to alt_purple, and add condition colun where all entry is 1
+#colnames(condition1_df)[2] <- "alt_purple"
+#condition1_df$condition <- 1
+
+gameID <- c("GAME001", "GAME002")  # Unique game IDs
+alt_purple <- runif(2, min = 0, max = 1)  # Two random values for alt_purple
+# Create the data frame
+condition1_df <- data.frame(gameID = gameID, alt_purple = alt_purple, condition = 1)
+# concatenate dhara _df and strategy_count_df
+both_data <- rbind(condition1_df,strategy_count_df)
+library(brms)
+brm(alt_purple ~ condition, data=both_data)
+# get prop of alt_purple in each condition
+
+result<-prop.test(x = c(sum(both_data$alt_purple[both_data$condition == 1]), sum(both_data$alt_purple[both_data$condition == 3])),
+      n = c(nrow(both_data[both_data$condition == 1, ]), nrow(both_data[both_data$condition == 3, ])))
+print(result)
 ```
 
 ### Confirmatory analysis
@@ -182,7 +345,7 @@ The analyses as specified in the analysis plan.
 
 ### Exploratory analyses
 
-Any follow-up analyses desired (not required).
+none
 
 ## Discussion
 
