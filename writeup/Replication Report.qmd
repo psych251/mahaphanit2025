@@ -160,17 +160,26 @@ influencing the outcome of this study.
 
 ### Methods Addendum (Post Data Collection)
 
-You can comment this section out prior to final report with data
-collection.
-
 #### Actual Sample
 
-Sample size, demographics, data exclusions based on rules spelled out in
-analysis plan
+Despite recruiting 104 participants, we encountered errors due to
+overloading of the server, and participants disconnecting, meaning that
+21 dyads completed the game. We followed the same exclusion criteria as
+the original paper including the attention check protocol in which we
+asked participants what cost they paid after each round of the game. 9
+out of 21 dyads scored lower than 60% in correctly reporting the cost
+that they paid, hence were excluded, leaving us with 12 data points to
+analyze. We suspect that one reason for this low scores was that we did
+not give feedback on whether the participants were correct or not when
+reporting their own scores. Furthermore, they may not have had enough
+time to fill in their score as suggested by the fact that there were
+many empty submissions to the attention check.
 
 #### Differences from pre-data collection methods plan
 
-Any differences from what was described as the original plan, or “none”.
+As reported in the section above, the number of dyads we were actually
+able to analyze was 12 dyads, which is singificantly smaller than the 52
+dyads that we had planned.
 
 ## Results
 
@@ -185,9 +194,10 @@ Data preparation following the analysis plan.
 library(dplyr)
 library(brms)# library for analysis
 #### Import data
-game_df <- read.csv("../data/pilotBresults/game-anon.csv")
-playerRound_df <- read.csv("../data/pilotBresults/playerRound-anon.csv")
-playerStage_df <- read.csv("../data/pilotBresults/playerStage-anon.csv")
+game_df <- read.csv("../data/full_replication/game.csv")
+player <- read.csv("../data/full_replication/deidentified_player.csv")
+playerRound_df <- read.csv("../data/full_replication/playerRound.csv")
+playerStage_df <- read.csv("../data/full_replication/playerStage.csv")
 n_rounds = 13
 #### Data exclusion / filtering
 # identify games which finished successfully
@@ -217,12 +227,23 @@ attention_gameIDs <- c()
 for (gid in successful_games_id) {
     stage_myCost<-playerStage_df$myCost[playerStage_df$gameID == gid]
     round_costs <- playerRound_df$cost[playerRound_df$gameID == gid]
+    stage_myCost[is.na(stage_myCost)] <- "none"
     # compare the two vectors
-    if (sum(stage_myCost == round_costs)/length(round_costs) > 0.8) {
+    tryCatch({
+    if (sum(stage_myCost == round_costs) / length(round_costs) > 0.6) {
+        print(paste("Passed attention check:", gid))
         attention_gameIDs <- c(attention_gameIDs, gid)
+    } else {
+        print(paste("Failed attention check:", gid))
+        print(stage_myCost)
+        print(round_costs)
     }
+}, error = function(e) {
+    print(paste("Error:", gid, "-", e$message,"this was the one player who did not get paired properly"))
+})
 }
 
+attention_gameIDs
 
 ### run python function on the cleaned csv to classify strategy.
 classify_strategy <- function(pair_choice_seq) {
@@ -235,12 +256,12 @@ classify_strategy <- function(pair_choice_seq) {
         next_p2_choice <- pair_choice_seq[i+n_rounds+1]
         if (all(c(p1_choice, p2_choice,next_p1_choice,next_p2_choice) %in% c("C", "D"))) {
             if (p1_choice == next_p1_choice & p2_choice == next_p2_choice){strat_table["stable_purple"]=strat_table["stable_purple"]+0.25}
-            if (p1_choice != next_p1_choice & p2_choice != next_p2_choice){strat_table["alt_purple"]=strat_table["alt_purple"]+0.25}
+            else if (p1_choice != next_p1_choice & p2_choice != next_p2_choice){strat_table["alt_purple"]=strat_table["alt_purple"]+0.25}
         } 
-        if (all(c(p1_choice, p2_choice,next_p1_choice,next_p2_choice) %in% c("A", "B"))) {
+        else if (all(c(p1_choice, p2_choice,next_p1_choice,next_p2_choice) %in% c("A", "B"))) {
             if (p1_choice == next_p1_choice & p2_choice == next_p2_choice){strat_table["stable_orange"]=strat_table["stable_orange"]+0.25}
         }
-    }
+    } 
     return (strat_table)
 }
 
@@ -262,6 +283,7 @@ for (game in attention_gameIDs) {
     df_game <- playerRound_df[playerRound_df$gameID == game, ]
     pair_choice_seq <- df_game$decision
     strat <- classify_strategy(pair_choice_seq)
+    if (strat["alt_purple"]>0){print(game)}
     strategy_count_df <- rbind(strategy_count_df, data.frame(
         game_number = game,
         alt_purple = strat["alt_purple"],           # Added quotes
@@ -270,7 +292,7 @@ for (game in attention_gameIDs) {
         other = 1 - strat["alt_purple"] - strat["stable_orange"] - strat["stable_purple"]  # Added quotes
     ))
 }
-write.csv(strategy_count_df, "../data/pilotBresults/simplified_experimental_data.csv", row.names = FALSE)
+write.csv(strategy_count_df, "../data/full_replication/simplified_experimental_data.csv", row.names = FALSE)
 
 # concatenate original_df and strategy_count_df and add condition column
 strategy_count_df$condition <- 3
@@ -287,8 +309,8 @@ paste("CrI inverval:(",fixef(brm_result)["condition","Q2.5"],",",fixef(brm_resul
 
 # get prop of alt_purple in each condition
 result<-prop.test(x = c(sum(both_data$alt_purple[both_data$condition == 1]), sum(both_data$alt_purple[both_data$condition == 3])),
-      n = c(nrow(both_data[both_data$condition == 1, ]), nrow(both_data[both_data$condition == 3, ])),alternative = "greater")
-paste("p_value that the results are different between condition 1 and 3:  ",result$p.value)
+      n = c(nrow(both_data[both_data$condition == 1, ]), nrow(both_data[both_data$condition == 3, ])),alternative = "less")
+paste("p_value that alternating on purple is more frequent in condition 3 than in condition 1:  ",result$p.value)
 ```
 
 ### Confirmatory analysis
@@ -306,21 +328,25 @@ original_d <- original_d[original_d$condition == "condition3", ]
 # for each strategy, sum up the counts
 strategy_counts <- data.frame(
     strategy = c("stable_orange", "stable_purple", "alt_purple", "other"),
-    count = c(sum(original_d$stable_orange), sum(original_d$stable_purple), sum(original_d$alt_purple), sum(original_d$no_norm))
+    count = c(sum(original_d$stable_orange), sum(original_d$stable_purple), sum(original_d$alt_purple), sum(original_d$other))
 )
-p_original <- ggplot(strategy_counts,aes(x=strategy,y=count)) + geom_col() +
-  labs(x = "norm type", y = "# pairs exhibiting norm", title = "Condition 3 in Figure 3\n in original paper") + theme_minimal() + scale_x_discrete(limits = c("stable_orange", "stable_purple", "alt_purple", "other"),labels = c("stable\norange", "stable\npurple", "alt\npurple", "other"))
+p_original <- ggplot(strategy_counts,aes(x=strategy,y=count/sum(count))) + geom_col() +
+  labs(x = "norm type", y = "proportion of pairs exhibiting norm", title = "Condition 3 in Figure 3\n in original paper") + theme_minimal() + scale_x_discrete(limits = c("stable_orange", "stable_purple", "alt_purple", "other"),labels = c("stable\norange", "stable\npurple", "alt\npurple", "other"))
 
 ggsave("../data/original_strategy_plot.png", plot = p_original, width = 6, height = 4, dpi = 300)
 
-experimental_d <- read.csv("../data/pilotBresults/simplified_experimental_data.csv")
+experimental_d <- read.csv("../data/full_replication/simplified_experimental_data.csv")
 # for each strategy, sum up the counts
 strategy_counts_exp <- data.frame(
     strategy = c("stable_orange", "stable_purple", "alt_purple", "other"),
     count = c(sum(experimental_d$stable_orange), sum(experimental_d$stable_purple), sum(experimental_d$alt_purple), sum(experimental_d$other))
 )
-p_experimental <- ggplot(strategy_counts_exp,aes(x=strategy,y=count)) + geom_col() +
-  labs(x = "norm type", y = "# pairs exhibiting norm", title = "Pilot B results") + theme_minimal() + scale_x_discrete(limits = c("stable_orange", "stable_purple", "alt_purple", "other"),labels = c("stable\norange", "stable\npurple", "alt\npurple", "other"))
+p_experimental <- ggplot(strategy_counts_exp, aes(x=strategy, y=count)) + 
+  geom_col() +
+  labs(x = "norm type", y = "proportion of pairs exhibiting norm", title = "Replication Results") + 
+  theme_minimal() + 
+  scale_x_discrete(limits = c("stable_orange", "stable_purple", "alt_purple", "other"),
+                   labels = c("stable\norange", "stable\npurple", "alt\npurple", "other"))
 ggsave("experimental_strategy_plot.png", plot = p_experimental, width = 6, height = 4, dpi = 300)   
 grid.arrange(p_original, p_experimental, ncol = 2)
 ```
@@ -334,10 +360,17 @@ the original paper, and the replication results.
 
 ### Summary of Replication Attempt
 
-Open the discussion section with a paragraph summarizing the primary
-result from the confirmatory analysis and the assessment of whether it
-replicated, partially replicated, or failed to replicate the original
-result.
+Qualitatively, the results from condition 3 of the original paper
+replicated. Furthermore, Bayesian regression analyses (included in the
+anaysis section) showed that participants in condition 3 developed the
+alternating norm more frequently than in control (β = 0.09,CrI =
+\[0.05,0.13\]) which reflects the original paper's finding which
+obtained (β = 0.10,CrI = \[0.01,0.20\]). \* In addition our proportion
+test showed the same result with p-value\<0.05. Thereforem we conclude
+that we were successful in a partial replication.
+
+\*we are not sure whether the same bayesian model was used as we do not
+have access to their analysis code.
 
 ### Commentary
 
@@ -350,8 +383,24 @@ plausibly, or are unlikely to have been moderators of the result, and
 original authors about the replication attempt. None of these need to be
 long.
 
-(c): It was hard to figure out the strategy classification algorithm, as
-the one shown in the paper "algorithm 1" seved more as a conceptual
-explanation rather. As the authors mention in a section of the paper,
-the actual classification algorithm used was different which confused
-me.
+\(a\) I looked into the pre-game plans written by dyads who converged to
+the alternating norm. I found that for one pair, they both mentioned the
+exact alternating strategy, and the other pairs who developed the
+alternating strategy mentioned something along the lines of coordinating
+so that they both choose purple. Their plans were generally more
+sophisticated than the average initial plan given in the study, giving
+further evidence on an exploratory analysis that the original authors
+conducted, which suggested that the written plans were predictive of the
+strategy that the dyads developed during the interaction.
+
+\(b\) The fact that some dyads in the replication developed an
+alternating norm confirms that it is plausible to develop this norm in
+the short timeframe of the experiment. This was surprising to me as
+apriori, it felt hard to come up with the alternating strategy, let
+alone coordinate on this strategy with a partner without communication.
+
+\(c\) It was hard to figure out the strategy classification algorithm,
+as the one shown in the paper "algorithm 1" served more as a conceptual
+explanation rather than what was actually used in the analysis. As the
+authors mention in a section of the paper, the actual classification
+algorithm used was different which confused me.
